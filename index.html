@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Herrero PRO - Calculadora de Chapas</title>
+    
+    <!-- VIEWPORT PARA PWA (actualizado) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    
+    <!-- PWA CONFIGURATION -->
+    <meta name="theme-color" content="#ff6b35">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- APPLE/IOS CONFIG -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CalcChapasPRO">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    
+    <!-- ANDROID/CHROME CONFIG -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="CalcChapasPRO">
+    
+   <style>
+        /* RESET Y VARIABLES */
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.3s ease; }
+        
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #333;
+            --accent-primary: #ff6b35;
+            --accent-secondary: #3b82f6;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #555;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --pro-color: #9966cc;
+        }
+
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 10px; 
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .container { 
+            width: 100%;
+            background: var(--bg-secondary);
+            padding: 15px; 
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        h2 { 
+            font-size: 18px; 
+            margin-bottom: 15px; 
+            text-align: center;
+            color: var(--accent-primary);
+        }
+
+        /* Badge PRO */
+        .badge-pro {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--pro-color), #ff6b35);
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        /* Menu de temas */
+        .theme-selector {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .theme-menu-btn {
+            width: 100%;
+            padding: 14px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: left;
+            position: relative;
+        }
+
+        .theme-menu-btn::after {
+            content: "▼";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        .theme-menu-btn.active::after {
+            content: "▲";
+        }
+
+        .theme-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 6px 6px;
+            z-index: 100;
+            margin-top: 1px;
+        }
+
+        .theme-dropdown.show {
+            display: block;
+        }
+
+        .theme-option {
+            padding: 12px 15px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 13px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .theme-option.active {
+            color: var(--text-primary);
+            font-weight: bold;
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        /* Selector principal */
+        .selector-principal {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .boton-opcion {
+            flex: 1;
+            padding: 14px 8px;
+            font-size: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .boton-opcion.activo {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-primary),
+                        0 0 25px var(--accent-primary) inset;
+        }
+        
+        /* CONTENEDOR DE MEDIDAS (NUEVA SECCION) */
+        .medidas-container {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .campos-verticales {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .campo-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .campo-vertical label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-left: 3px;
+        }
+        
+        .campo-vertical input {
+            padding: 14px;
+            font-size: 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            width: 100%;
+        }
+        
+        .campo-vertical input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            font-style: italic;
+        }
+        
+        /* Configuracion de precios */
+        .config-precios {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .config-pintura {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        
+        .config-pintura input {
+            width: 120px;
+            padding: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        
+        /* ACORDEON CONFIGURACION AVANZADA */
+        .acordeon-config {
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .acordeon-config-header {
+            background: var(--pro-color);
+            padding: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .acordeon-config-header:hover {
+            filter: brightness(1.1);
+        }
+        
+        .acordeon-config-content {
+            display: none;
+            padding: 15px;
+        }
+        
+        .acordeon-config-content.show {
+            display: block;
+        }
+        
+        /* Selectores de opciones especificas */
+        .selectores-categoria {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .selectores-categoria select {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+        
+        /* TOGGLE PORCENTAJE/PESOS */
+        .toggle-container {
+            display: flex;
+            margin-bottom: 15px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: none;
+        }
+        
+        .toggle-btn.activo {
+            background: var(--pro-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Configuracion PRO */
+        .config-pro {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 2px solid var(--pro-color);
+            box-shadow: 0 0 15px rgba(153, 102, 204, 0.2);
+        }
+        
+        .config-pro h4 {
+            color: var(--pro-color);
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .grupo-porcentajes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .fila-porcentaje {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .fila-porcentaje label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .fila-porcentaje input {
+            width: 80px;
+            padding: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .fila-porcentaje span {
+            width: 40px;
+            text-align: right;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        /* BOTONES VACIOS (NUEVO ESTILO) */
+        .boton-vacio {
+            background: transparent !important;
+            border: 2px solid var(--accent-primary) !important;
+            color: var(--accent-primary) !important;
+            font-weight: bold;
+            padding: 14px !important;
+            border-radius: 6px !important;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .boton-vacio:hover {
+            background: var(--accent-primary) !important;
+            color: var(--text-primary) !important;
+            transform: translateY(-2px);
+        }
+        
+        .boton-vacio:active {
+            transform: translateY(0);
+        }
+        
+        .botones-compactos {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        /* Botones PDF vacios */
+        .botones-pdf-vacios {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .botones-pdf-vacios button {
+            flex: 1;
+            background: transparent !important;
+            border: 2px solid var(--accent-secondary) !important;
+            color: var(--accent-secondary) !important;
+            padding: 12px 8px !important;
+            font-size: 12px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            transition: all 0.3s !important;
+            font-weight: bold !important;
+        }
+        
+        .botones-pdf-vacios button:hover {
+            background: var(--accent-secondary) !important;
+            color: white !important;
+        }
+        
+        /* Configuracion especial marcos */
+        .config-especial {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid var(--pro-color);
+        }
+        
+        .calculos-automaticos {
+            background: rgba(153, 102, 204, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px dashed var(--pro-color);
+        }
+        
+        .valor-calculado {
+            font-weight: bold;
+            color: var(--pro-color);
+            font-size: 16px;
+        }
+        
+		/* CONFIGURACION INDIVIDUAL */
+		.fila-config-individual {
+		    background: var(--bg-tertiary);
+		    padding: 12px;
+		    border-radius: 6px;
+		    margin-bottom: 10px;
+		    border-left: 3px solid var(--pro-color);
+		}
+		
+		.config-label {
+		    margin-bottom: 8px;
+		}
+		
+		.config-label strong {
+		    color: var(--text-primary);
+		    font-size: 14px;
+		}
+		
+		.info-tooltip {
+		    font-size: 11px;
+		    color: var(--text-secondary);
+		    margin-left: 8px;
+		    font-style: italic;
+		}
+		
+		.config-controls {
+		    display: flex;
+		    align-items: center;
+		    gap: 8px;
+		}
+		
+		.toggle-mini {
+		    display: flex;
+		    background: var(--bg-secondary);
+		    border-radius: 4px;
+		    overflow: hidden;
+		    border: 1px solid var(--border-color);
+		    min-width: 60px;
+		    height: 32px;
+		}
+		
+		.toggle-mini-btn {
+		    padding: 0;
+		    background: var(--bg-secondary);
+		    color: var(--text-secondary);
+		    border: none;
+		    cursor: pointer;
+		    font-size: 12px;
+		    min-width: 30px;
+		    flex: 1;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    transition: all 0.2s;
+		}
+		
+		.toggle-mini-btn:hover {
+		    background: var(--bg-primary);
+		}
+		
+		.toggle-mini-btn.activo {
+		    background: var(--pro-color);
+		    color: white;
+		    font-weight: bold;
+		}
+		
+		.config-controls input {
+		    flex: 1;
+		    padding: 8px;
+		    background: var(--bg-secondary);
+		    color: var(--text-primary);
+		    border: 1px solid var(--border-color);
+		    border-radius: 4px;
+		    text-align: center;
+		    min-width: 80px;
+		}
+		
+		.unidad {
+		    width: 30px;
+		    text-align: center;
+		    font-weight: bold;
+		    color: var(--text-primary);
+		}
+        
+        /* Temas (se mantienen igual) */
+        .tema-actual { --bg-primary: #1a1a1a; --bg-secondary: #2d2d2d; --bg-tertiary: #333; --accent-primary: #ff6b35; --accent-secondary: #3b82f6; --text-primary: #ffffff; --text-secondary: #cccccc; --border-color: #555; --success-color: #10b981; --warning-color: #f59e0b; --pro-color: #9966cc; }
+        .tema-tron { --bg-primary: #0a0a0a; --bg-secondary: #0c0c1a; --bg-tertiary: #000; --accent-primary: #00f3ff; --accent-secondary: #0080ff; --text-primary: #ffffff; --text-secondary: #00f3ff; --border-color: #00f3ff; --success-color: #00ffaa; --warning-color: #00f3ff; --pro-color: #00f3ff; }
+        .tema-batman { --bg-primary: #0a0a0a; --bg-secondary: #1a1a1a; --bg-tertiary: #2a0a0a; --accent-primary: #ffff00; --accent-secondary: #ff6600; --text-primary: #ffffff; --text-secondary: #ffff00; --border-color: #333; --success-color: #00ff00; --warning-color: #ffff00; --pro-color: #ffff00; }
+        .tema-fundicion { --bg-primary: #1a0a0a; --bg-secondary: #2a0a0a; --bg-tertiary: #3a0a0a; --accent-primary: #ff4444; --accent-secondary: #ff6b6b; --text-primary: #e8e8e8; --text-secondary: #ff6b6b; --border-color: #8b0000; --success-color: #ffaa00; --warning-color: #ff4444; --pro-color: #ff4444; }
+        .tema-starwars { --bg-primary: #1a1a2e; --bg-secondary: #16213e; --bg-tertiary: #0f3460; --accent-primary: #9966cc; --accent-secondary: #ffeb99; --text-primary: #ffeb99; --text-secondary: #ccccff; --border-color: #444; --success-color: #66ff99; --warning-color: #9966cc; --pro-color: #9966cc; }
+        
+        /* Resultados (se mantienen igual) */
+        .mensaje-exito {
+            background: var(--success-color);
+            color: var(--text-primary);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .acordeon-cabecera {
+            background: var(--accent-primary);
+            padding: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .acordeon-contenido {
+            display: none;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .tipo-mini {
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: var(--bg-tertiary);
+        }
+        
+        .rojo { border-left: 4px solid #dc2626; }
+        .azul { border-left: 4px solid #2563eb; }
+        .verde { border-left: 4px solid #16a34a; }
+        
+        .total-mini {
+            background: var(--accent-primary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        
+        .resumen-linea {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        
+        .info-extra {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .pintura-info {
+            background: var(--bg-tertiary);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* CERTIFICADO */
+        #certificado {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .certificado-contenido {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            border: 2px solid var(--pro-color);
+            box-shadow: 0 0 30px rgba(153, 102, 204, 0.3);
+        }
+
+        /* Boton de instalacion */
+        #boton-instalar-app {
+            display: none !important;
+        }
+
+        /* MEDIA QUERIES */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 500px;
+                margin: 0 auto;
+            }
+        }
+
+        @media print {
+            body { 
+                background: white !important; 
+                color: black !important; 
+                padding: 0;
+                margin: 0;
+            }
+            .container { 
+                background: white !important; 
+                box-shadow: none !important;
+                padding: 10px;
+                margin: 0;
+            }
+            .theme-selector, .selector-principal, .botones-compactos, .botones-pdf-vacios, 
+            .config-precios, .selectores-categoria, 
+            .acordeon-cabecera, .config-pro, .acordeon-config { 
+                display: none !important; 
+            }
+            .acordeon-contenido { 
+                display: block !important; 
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .tipo-mini, .pintura-info, .total-mini {
+                background: white !important;
+                color: black !important;
+                border: 1px solid #ddd !important;
+                margin: 10px 0 !important;
+            }
+            .rojo, .azul, .verde {
+                border-left: 4px solid #666 !important;
+            }
+            .info-extra {
+                color: #666 !important;
+            }
+        }
+    </style>
+</head>
+<body class="tema-actual">
+    <div class="container">
+        <h2>CALCULADORA DE CHAPAS PRO <span class="badge-pro">PRO</span></h2>
+        
+        <!-- Menu de estetica -->
+        <div class="theme-selector">
+            <button class="theme-menu-btn" id="themeMenuBtn">APARIENCIA: ACTUAL</button>
+            <div class="theme-dropdown" id="themeDropdown">
+                <button class="theme-option active" data-tema="actual">ACTUAL</button>
+                <button class="theme-option" data-tema="tron">TRON</button>
+                <button class="theme-option" data-tema="batman">BATMAN</button>
+                <button class="theme-option" data-tema="fundicion">FUNDICION</button>
+                <button class="theme-option" data-tema="starwars">STAR WARS</button>
+            </div>
+        </div>
+        
+        <!-- Selector de opcion -->
+        <div class="selector-principal">
+            <button class="boton-opcion activo" data-opcion="A">FRENTE GABINETE</button>
+            <button class="boton-opcion" data-opcion="B">MARCO PUERTA</button>
+        </div>
+        
+        <!-- CONTENEDOR DE MEDIDAS (NUEVO ORDEN) -->
+        <div class="medidas-container" id="medidas-container">
+            <!-- Opcion A: Frente Gabinete -->
+            <div id="medidas-opcion-A">
+                <div class="campos-verticales">
+                    <div class="campo-vertical">
+                        <label>Alto total (metros)</label>
+                        <input type="number" id="altoTotalA" placeholder="Ej: 1.80" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="campo-vertical">
+                        <label>Ancho total (metros)</label>
+                        <input type="number" id="anchoTotalA" placeholder="Ej: 2.40" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="campo-vertical">
+                        <label>Cantidad de puertas</label>
+                        <input type="number" id="cantPuertasA" placeholder="Ej: 2" min="1">
+                    </div>
+                </div>
+                
+                <!-- Configuracion especifica Opcion A -->
+                <div style="margin-top: 15px;">
+                    <div class="selectores-categoria">
+                        <select id="subopcionMarcoA">
+                            <option value="opc1">Rebaje: 0.03m | Desarrollo: 0.19m</option>
+                            <option value="opc2">Rebaje: 0.02m | Desarrollo: 0.18m</option>
+                            <option value="manual">Rebaje manual</option>
+                        </select>
+                    </div>
+                    
+                    <div id="rebajeManualContainerA" style="display: none; margin-top: 10px;">
+                        <div class="campo-vertical">
+                            <label>Rebaje manual (metros)</label>
+                            <input type="number" id="rebajeManualA" placeholder="Ej: 0.03" step="0.001" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="selectores-categoria" style="margin-top: 10px;">
+                        <select id="tipoChapaA">
+                            <option value="n18">Chapa N°18 (11kg/m²)</option>
+                            <option value="n20">Chapa N°20 (9kg/m²)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opcion B: Marco Puerta -->
+            <div id="medidas-opcion-B" style="display: none;">
+                <div class="campos-verticales">
+                    <div class="campo-vertical">
+                        <label>Alto total (metros)</label>
+                        <input type="number" id="altoTotalB" placeholder="Ej: 2.10" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="campo-vertical">
+                        <label>Ancho total (metros)</label>
+                        <input type="number" id="anchoTotalB" placeholder="Ej: 0.90" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="campo-vertical">
+                        <label>Cantidad de puertas</label>
+                        <input type="number" id="cantPuertasB" placeholder="Ej: 1" min="1">
+                    </div>
+                </div>
+                
+                <!-- Configuracion especifica Opcion B -->
+                <div style="margin-top: 15px;">
+                    <div class="selectores-categoria">
+                        <select id="configRebajeB">
+                            <option value="opc2" selected>Rebaje: 0.04m | Prof. Marco: 0.085m</option>
+                            <option value="opc1">Rebaje: 0.03m | Prof. Marco: 0.075m</option>
+                            <option value="opc3">Rebaje: 0.05m | Prof. Marco: 0.095m</option>
+                            <option value="especial">ESPECIAL - Marcos "abraza mucheta"</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Configuracion especial para Marcos "abraza mucheta" -->
+                    <div id="configEspecialB" class="config-especial" style="display: none; margin-top: 10px;">
+                        <h4>CONFIGURACION ESPECIAL PARA MARCOS PROFUNDOS</h4>
+                        
+                        <div class="campos-verticales">
+                            <div class="campo-vertical">
+                                <label>Rebaje para puerta (metros)</label>
+                                <input type="number" id="rebajeEspecialB" placeholder="Ej: 0.04" step="0.001" min="0">
+                            </div>
+                            
+                            <div class="campo-vertical">
+                                <label>Contrarebaje adicional (metros)</label>
+                                <input type="number" id="contrarebajeEspecialB" placeholder="Ej: 0.145" step="0.001" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="calculos-automaticos">
+                            <div class="resumen-linea">
+                                <span>Profundidad total calculada:</span>
+                                <span class="valor-calculado" id="profundidadTotalB">0.000 m</span>
+                            </div>
+                            <div class="resumen-linea">
+                                <span>Desarrollo calculado:</span>
+                                <span class="valor-calculado" id="desarrolloCalculadoB">0.000 m</span>
+                            </div>
+                            <div class="info-extra">
+                                Formulas: Profundidad = 0.015 + Rebaje + Contrarebaje | Desarrollo = 0.145 + Rebaje + Contrarebaje
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectores-categoria" style="margin-top: 10px;">
+                        <select id="tipoChapaB">
+                            <option value="n18">Chapa N°18 (11kg/m²)</option>
+                            <option value="n20">Chapa N°20 (9kg/m²)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CONFIGURACION DE PRECIOS -->
+        <div class="config-precios">
+            <div class="config-pintura">
+                <span>Precio por kg de chapa:</span>
+                <input type="number" id="precioKg" placeholder="7000" min="0" step="100">
+                <span>$/kg</span>
+            </div>
+            <div class="config-pintura">
+                <span>Precio pintura por litro:</span>
+                <input type="number" id="precioPintura" placeholder="18000" min="0" step="1000">
+                <span>$/L</span>
+            </div>
+            <div class="switch">
+                <span>Incluir factura:</span>
+                <label>
+                    <input type="checkbox" id="conFactura"> 
+                    <span style="margin-left: 8px;">SI (+15%)</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- ACORDEON CONFIGURACION AVANZADA -->
+		<div class="acordeon-config">
+		    <div class="acordeon-config-header" id="acordeonConfigHeader">
+		        <span>CONFIGURACION AVANZADA PRO</span>
+		        <span>▼</span>
+		    </div>
+		    <div class="acordeon-config-content" id="acordeonConfigContent">
+		        
+		        <!-- 1. DESPERDICIO (SIEMPRE PORCENTAJE) -->
+		        <div class="fila-config-individual">
+		            <div class="config-label">
+		                <strong>Desperdicio material:</strong>
+		                <span class="info-tooltip">(Siempre porcentaje sobre material)</span>
+		            </div>
+		            <div class="config-controls">
+		                <input type="number" id="configDesperdicio" value="10" min="0" max="50" step="1">
+		                <span class="unidad">%</span>
+		            </div>
+		        </div>
+		        
+		        <!-- 2. OTROS MATERIALES (PORCENTAJE O FIJO) -->
+		        <div class="fila-config-individual">
+		            <div class="config-label">
+		                <strong>Otros materiales:</strong>
+		                <span class="info-tooltip">(Herrajes, tornillos, etc.)</span>
+		            </div>
+		            <div class="config-controls">
+		                <div class="toggle-mini">
+		                    <button class="toggle-mini-btn activo" data-campo="otrosMateriales" data-tipo="porcentaje">%</button>
+		                    <button class="toggle-mini-btn" data-campo="otrosMateriales" data-tipo="fijo">$</button>
+		                </div>
+		                <input type="number" id="configOtrosMateriales" value="30" min="0" step="1">
+		                <span class="unidad" id="unidadOtrosMateriales">%</span>
+		            </div>
+		        </div>
+		        
+		        <!-- 3. MANO DE OBRA (PORCENTAJE O FIJO) -->
+		        <div class="fila-config-individual">
+		            <div class="config-label">
+		                <strong>Mano de obra:</strong>
+		                <span class="info-tooltip">(Trabajo del herrero)</span>
+		            </div>
+		            <div class="config-controls">
+		                <div class="toggle-mini">
+		                    <button class="toggle-mini-btn activo" data-campo="manoObra" data-tipo="porcentaje">%</button>
+		                    <button class="toggle-mini-btn" data-campo="manoObra" data-tipo="fijo">$</button>
+		                </div>
+		                <input type="number" id="configManoObra" value="100" min="0" step="5">
+		                <span class="unidad" id="unidadManoObra">%</span>
+		            </div>
+		        </div>
+		        
+		        <div class="info-extra" style="margin-top: 15px; font-size: 12px;">
+		            <strong>Nota:</strong> Cada concepto puede configurarse independientemente como porcentaje o valor fijo.
+		        </div>
+		    </div>
+		</div>
+        
+        <div class="info-extra" style="margin-top: 15px; font-size: 12px;">
+            <strong>Nota:</strong> Cada concepto puede configurarse independientemente como porcentaje o valor fijo.
+        </div>
+    </div>
+</div>
+        
+        <!-- Mensaje de exito -->
+        <div class="mensaje-exito" id="mensajeExito"></div>
+        
+        <!-- BOTONES PRINCIPALES (ESTILO VACIO) -->
+        <div class="botones-compactos">
+            <button class="boton-vacio" onclick="calcularChapas()">CALCULAR CHAPAS</button>
+            <button class="boton-vacio" onclick="limpiarCalculadora()" style="border-color: var(--text-secondary); color: var(--text-secondary);">LIMPIAR TODO</button>
+        </div>
+
+        <!-- BOTONES PDF E IMPRIMIR (ESTILO VACIO) -->
+        <div class="botones-pdf-vacios">
+            <button onclick="imprimirResultados()">IMPRIMIR / GUARDAR PDF</button>
+        </div>
+
+        <!-- BOTON PARA VER CERTIFICADO (ESTILO VACIO) -->
+        <div class="botones-pdf-vacios" style="margin-top: 5px;">
+           <button onclick="mostrarCertificado()" style="border-color: var(--pro-color); color: var(--pro-color);">
+            VER CERTIFICADO DE USO PRO
+           </button>
+        </div>
+        
+        <!-- Resultados -->
+        <div class="acordeon">
+            <div class="acordeon-cabecera" onclick="toggleAcordeon('resultadosChapas')">
+                VER RESULTADOS COMPLETOS
+            </div>
+            <div class="acordeon-contenido" id="resultadosChapas"></div>
+        </div>
+    </div>
+
+    <!-- CERTIFICADO DE USO PRO -->
+    <div id="certificado">
+       <div class="certificado-contenido">
+           <h3 style="color: var(--pro-color); text-align: center; margin-bottom: 15px; font-size: 20px;">CERTIFICADO DE USO PRO</h3>
+            
+           <div style="background: rgba(153, 102, 204, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+               <p style="margin: 8px 0;"><strong>Calculadora de Chapas para Frentes</strong></p>
+               <p style="margin: 8px 0;">Version: <span style="color: var(--pro-color); font-weight: bold;">PRO LICENCIADA</span></p>
+               <p style="margin: 8px 0;">Desarrollador: <strong>[EL HERRERO]</strong></p>
+               <p style="margin: 8px 0;">Contacto: <strong>[elherrero12@gmail.com]</strong></p>
+               <p style="margin: 8px 0; font-size: 13px; color: var(--pro-color);">Licencia valida para uso profesional</p>
+           </div>
+            
+           <hr style="border-color: #444; margin: 15px 0;">
+            
+           <div style="margin-bottom: 15px;">
+               <p style="color: #10b981; font-weight: bold;">FUNCIONES PRO INCLUIDAS:</p>
+               <ul style="padding-left: 20px; margin: 10px 0; font-size: 14px;">
+                   <li>Calculo para Marcos Puerta completos</li>
+                   <li>Configuracion especial "abraza mucheta"</li>
+                   <li>Porcentajes ajustables (desperdicio, mano de obra)</li>
+                   <li>Rebaje y contrarebaje manual</li>
+                   <li>Multiples temas de personalizacion</li>
+               </ul>
+           </div>
+            
+           <hr style="border-color: #444; margin: 15px 0;">
+            
+           <div style="background: rgba(59,130,246,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+               <p style="font-weight: bold; color: #3b82f6;">ACTUALIZACIONES FUTURAS</p>
+               <p style="font-size: 13px; margin-top: 5px;">Esta version PRO incluye acceso a futuras actualizaciones y nuevas funciones.</p>
+           </div>
+            
+           <button onclick="cerrarCertificado()" class="boton-vacio" 
+                   style="width: 100%; border-color: var(--pro-color); color: var(--pro-color);">
+               ENTENDIDO Y ACEPTO
+           </button>
+            
+           <p style="text-align: center; font-size: 11px; color: #888; margin-top: 15px;">
+               Version PRO - Para uso profesional autorizado
+           </p>
+       </div>
+    </div>
+
+    <script>
+        // =============================================
+		// CONSTANTES Y CONFIGURACION
+		// =============================================
+		const CONSTANTES_ESPECIALES = {
+		    PROFUNDIDAD_BASE: 0.015,   // Espesor contramarco fijo
+		    DESARROLLO_BASE: 0.145     // Desarrollo base fijo
+		};
+		
+		const CONSTANTES_OPCION_B = {
+		    'opc1': { rebaje: 0.03, profConst: 0.045, devConst: 0.165, profMarco: 0.075 },
+		    'opc2': { rebaje: 0.04, profConst: 0.055, devConst: 0.175, profMarco: 0.085 },
+		    'opc3': { rebaje: 0.05, profConst: 0.056, devConst: 0.175, profMarco: 0.095 }
+		};
+		
+		// =============================================
+		// SISTEMA DE TEMAS
+		// =============================================
+		const themeMenuBtn = document.getElementById('themeMenuBtn');
+		const themeDropdown = document.getElementById('themeDropdown');
+		const themeOptions = document.querySelectorAll('.theme-option');
+		
+		themeMenuBtn.addEventListener('click', function(e) {
+		    e.stopPropagation();
+		    themeDropdown.classList.toggle('show');
+		    themeMenuBtn.classList.toggle('active');
+		});
+		
+		document.addEventListener('click', function(e) {
+		    if (!themeMenuBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+		        themeDropdown.classList.remove('show');
+		        themeMenuBtn.classList.remove('active');
+		    }
+		});
+		
+		themeOptions.forEach(option => {
+		    option.addEventListener('click', function() {
+		        const tema = this.dataset.tema;
+		        themeOptions.forEach(opt => opt.classList.remove('active'));
+		        this.classList.add('active');
+		        document.body.className = `tema-${tema}`;
+		        themeMenuBtn.textContent = `APARIENCIA: ${this.textContent}`;
+		        localStorage.setItem('tema-calculadora', tema);
+		        themeDropdown.classList.remove('show');
+		        themeMenuBtn.classList.remove('active');
+		    });
+		});
+		
+		// Cargar tema guardado
+		const temaGuardado = localStorage.getItem('tema-calculadora') || 'actual';
+		document.body.className = `tema-${temaGuardado}`;
+		const temaActivo = document.querySelector(`.theme-option[data-tema="${temaGuardado}"]`);
+		if (temaActivo) {
+		    temaActivo.classList.add('active');
+		    themeMenuBtn.textContent = `APARIENCIA: ${temaActivo.textContent}`;
+		}
+		
+		// =============================================
+		// NAVEGACION ENTRE OPCIONES (MODIFICADO)
+		// =============================================
+		document.querySelectorAll('.boton-opcion').forEach(boton => {
+		    boton.addEventListener('click', function() {
+		        document.querySelectorAll('.boton-opcion').forEach(b => b.classList.remove('activo'));
+		        this.classList.add('activo');
+		        
+		        const opcion = this.dataset.opcion;
+		        
+		        // Mostrar/ocultar medidas segun opcion
+		        document.getElementById('medidas-opcion-A').style.display = opcion === 'A' ? 'block' : 'none';
+		        document.getElementById('medidas-opcion-B').style.display = opcion === 'B' ? 'block' : 'none';
+		        
+		        // Actualizar configuracion especial si es opcion B
+		        if (opcion === 'B') {
+		            setTimeout(calcularValoresEspeciales, 100);
+		        }
+		    });
+		});
+		
+		// =============================================
+		// ACORDEON CONFIGURACION AVANZADA
+		// =============================================
+		const acordeonConfigHeader = document.getElementById('acordeonConfigHeader');
+		const acordeonConfigContent = document.getElementById('acordeonConfigContent');
+		
+		acordeonConfigHeader.addEventListener('click', function() {
+		    const isShowing = acordeonConfigContent.classList.toggle('show');
+		    this.querySelector('span:last-child').textContent = isShowing ? '▲' : '▼';
+		});
+		
+		// =============================================
+		// CONFIGURACION INDIVIDUAL POR CONCEPTO
+		// =============================================
+		
+		// Manejar toggles individuales
+		document.querySelectorAll('.toggle-mini-btn').forEach(btn => {
+		    btn.addEventListener('click', function() {
+		        const campo = this.dataset.campo;
+		        const tipo = this.dataset.tipo;
+		        
+		        // Desactivar otros botones del mismo grupo
+		        this.parentElement.querySelectorAll('.toggle-mini-btn').forEach(b => {
+		            b.classList.remove('activo');
+		        });
+		        
+		        // Activar este botón
+		        this.classList.add('activo');
+		        
+		        // Actualizar unidad
+		        const unidadElement = document.getElementById(`unidad${campo.charAt(0).toUpperCase() + campo.slice(1)}`);
+		        if (unidadElement) {
+		            unidadElement.textContent = tipo === 'porcentaje' ? '%' : '$';
+		        }
+		        
+		        // Guardar configuración
+		        guardarConfigIndividual(campo, tipo);
+		    });
+		});
+		
+		// Guardar configuración individual
+		function guardarConfigIndividual(campo, tipo) {
+		    const config = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+		    config[campo] = { tipo: tipo };
+		    localStorage.setItem('configIndividual', JSON.stringify(config));
+		}
+		
+		// Obtener configuración completa
+		function obtenerConfigIndividual() {
+		    const configGuardada = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+		    
+		    return {
+		        desperdicio: {
+		            valor: parseFloat(document.getElementById('configDesperdicio').value) || 10,
+		            tipo: 'porcentaje' // Siempre porcentaje
+		        },
+		        otrosMateriales: {
+		            valor: parseFloat(document.getElementById('configOtrosMateriales').value) || 30,
+		            tipo: configGuardada.otrosMateriales?.tipo || 'porcentaje'
+		        },
+		        manoObra: {
+		            valor: parseFloat(document.getElementById('configManoObra').value) || 100,
+		            tipo: configGuardada.manoObra?.tipo || 'porcentaje'
+		        }
+		    };
+		}
+		
+		// Cargar configuración guardada al iniciar
+		function cargarConfigIndividual() {
+		    const configGuardada = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+		    
+		    // Cargar valores guardados
+		    if (localStorage.getItem('configPro_desperdicio')) {
+		        document.getElementById('configDesperdicio').value = localStorage.getItem('configPro_desperdicio');
+		    }
+		    if (localStorage.getItem('configPro_otrosMateriales')) {
+		        document.getElementById('configOtrosMateriales').value = localStorage.getItem('configPro_otrosMateriales');
+		    }
+		    if (localStorage.getItem('configPro_manoObra')) {
+		        document.getElementById('configManoObra').value = localStorage.getItem('configPro_manoObra');
+		    }
+		    
+		    // Aplicar toggles guardados
+		    ['otrosMateriales', 'manoObra'].forEach(campo => {
+		        if (configGuardada[campo]) {
+		            const btn = document.querySelector(`.toggle-mini-btn[data-campo="${campo}"][data-tipo="${configGuardada[campo].tipo}"]`);
+		            if (btn) btn.click();
+		        }
+		    });
+		}
+		
+		// =============================================
+		// MANEJO OPCION A - Rebaje manual
+		// =============================================
+		document.getElementById('subopcionMarcoA').addEventListener('change', function() {
+		    document.getElementById('rebajeManualContainerA').style.display = 
+		        this.value === 'manual' ? 'block' : 'none';
+		});
+		
+		// =============================================
+		// MANEJO OPCION B - Configuracion especial
+		// =============================================
+		document.getElementById('configRebajeB').addEventListener('change', function() {
+		    const configEspecial = document.getElementById('configEspecialB');
+		    
+		    if (this.value === 'especial') {
+		        configEspecial.style.display = 'block';
+		        calcularValoresEspeciales();
+		    } else {
+		        configEspecial.style.display = 'none';
+		        // Mostrar valores predefinidos
+		        const constante = CONSTANTES_OPCION_B[this.value];
+		        document.getElementById('rebajeEspecialB').value = constante.rebaje;
+		        document.getElementById('contrarebajeEspecialB').value = (constante.profMarco - CONSTANTES_ESPECIALES.PROFUNDIDAD_BASE - constante.rebaje).toFixed(3);
+		        calcularValoresEspeciales();
+		    }
+		});
+		
+		// Calcular valores cuando cambian rebaje o contrarebaje
+		document.getElementById('rebajeEspecialB').addEventListener('input', calcularValoresEspeciales);
+		document.getElementById('contrarebajeEspecialB').addEventListener('input', calcularValoresEspeciales);
+		
+		function calcularValoresEspeciales() {
+		    const rebaje = parseFloat(document.getElementById('rebajeEspecialB').value) || 0;
+		    const contrarebaje = parseFloat(document.getElementById('contrarebajeEspecialB').value) || 0;
+		    
+		    // Calcular profundidad total
+		    const profundidadTotal = CONSTANTES_ESPECIALES.PROFUNDIDAD_BASE + rebaje + contrarebaje;
+		    document.getElementById('profundidadTotalB').textContent = `${profundidadTotal.toFixed(3)} m`;
+		    
+		    // Calcular desarrollo
+		    const desarrollo = CONSTANTES_ESPECIALES.DESARROLLO_BASE + rebaje + contrarebaje;
+		    document.getElementById('desarrolloCalculadoB').textContent = `${desarrollo.toFixed(3)} m`;
+		}
+		
+		// =============================================
+		// CLASE CALCULADORA PRO - SIMPLIFICADA
+		// =============================================
+		class CalculadoraChapasPRO {
+		    constructor(precioKg = 7000, precioPintura = 18000) {
+		        this.precioBaseKg = precioKg;
+		        this.precioPinturaLitro = precioPintura;
+		        this.pesosChapa = {'n18': 11, 'n20': 9};
+		    }
+		    
+		    // Métodos de cálculo existentes (se mantienen igual)
+		    calcularMlMarcoA(alto, ancho) {
+		        return (alto * 2) + (ancho * 2);
+		    }
+		    
+		    calcularDesarrolloMarcoA(rebaje) {
+		        return 0.16 + rebaje;
+		    }
+		    
+		    obtenerRebajeEstandarA(subopcion) {
+		        const rebajesEstandar = {'opc1': 0.03, 'opc2': 0.02};
+		        return rebajesEstandar[subopcion] || 0.03;
+		    }
+		    
+		    calcularProfundidadPuerta(rebaje) {
+		        return (rebaje + 0.015) * 2;
+		    }
+		    
+		    calcularDesarrolloOmega(rebaje) {
+		        return (0.015 * 2) + (rebaje * 2) + 0.1;
+		    }
+		    
+		    calcularMlMarcoB(alto, ancho) {
+		        return (alto * 2) + ancho;
+		    }
+		    
+		    calcularLatasPintura(litros) {
+		        let latas = [];
+		        let litrosRestantes = litros;
+		        
+		        const latas4L = Math.floor(litrosRestantes / 4);
+		        if (latas4L > 0) {
+		            latas.push(`${latas4L} lata${latas4L > 1 ? 's' : ''} de 4L`);
+		            litrosRestantes -= latas4L * 4;
+		        }
+		        
+		        if (litrosRestantes > 0) {
+		            latas.push(`${litrosRestantes} lata${litrosRestantes > 1 ? 's' : ''} de 1L`);
+		        }
+		        
+		        return latas.join(' + ');
+		    }
+		    
+		    // METODO PRINCIPAL CON CONFIGURACIÓN INDIVIDUAL
+		    _calcularResultadosFinales(m2Totales, datos, rebaje, desarrollo, profundidadTotal = null) {
+		        try {
+		            const pesoPorM2 = this.pesosChapa[datos.tipoChapa];
+		            const kgSinDesperdicio = m2Totales * pesoPorM2;
+		            
+		            // Obtener configuración individual
+		            const config = obtenerConfigIndividual();
+		            
+		            // 1. DESPERDICIO (siempre porcentaje)
+		            const factorDesperdicio = 1 + (config.desperdicio.valor / 100);
+		            const kgConDesperdicio = kgSinDesperdicio * factorDesperdicio;
+		            
+		            const costoChapa = kgConDesperdicio * this.precioBaseKg;
+		            
+		            // 2. PINTURA
+		            const m2Pintura = m2Totales * 2;
+		            const litrosPintura = Math.ceil((m2Pintura * 2) / 10);
+		            const costoPintura = litrosPintura * this.precioPinturaLitro;
+		            const combinacionLatas = this.calcularLatasPintura(litrosPintura);
+		            
+		            // 3. COSTO MATERIALES (chapa + pintura)
+		            const costoMateriales = costoChapa + costoPintura;
+		            
+		            // 4. APLICAR OTROS MATERIALES (puede ser % o $)
+		            let costoConOtrosMateriales;
+		            if (config.otrosMateriales.tipo === 'porcentaje') {
+		                costoConOtrosMateriales = costoMateriales * (1 + (config.otrosMateriales.valor / 100));
+		            } else {
+		                costoConOtrosMateriales = costoMateriales + config.otrosMateriales.valor;
+		            }
+		            
+		            // 5. APLICAR MANO DE OBRA (puede ser % o $)
+		            let costoConManoObra;
+		            if (config.manoObra.tipo === 'porcentaje') {
+		                costoConManoObra = costoConOtrosMateriales * (1 + (config.manoObra.valor / 100));
+		            } else {
+		                costoConManoObra = costoConOtrosMateriales + config.manoObra.valor;
+		            }
+		            
+		            // 6. APLICAR FACTURA si corresponde
+		            const costoFinal = datos.conFactura ? costoConManoObra * 1.15 : costoConManoObra;
+		            
+		            return {
+		                m2Totales: Number(m2Totales.toFixed(4)),
+		                kgSinDesperdicio: Number(kgSinDesperdicio.toFixed(2)),
+		                kgConDesperdicio: Number(kgConDesperdicio.toFixed(2)),
+		                precioKgUsado: this.precioBaseKg,
+		                precioPinturaUsado: this.precioPinturaLitro,
+		                rebajeUsado: rebaje,
+		                desarrolloUsado: desarrollo,
+		                profundidadTotalUsada: profundidadTotal,
+		                costoChapa: Number(costoChapa.toFixed(2)),
+		                costoPintura: Number(costoPintura.toFixed(2)),
+		                costoMateriales: Number(costoMateriales.toFixed(2)),
+		                costoConOtrosMateriales: Number(costoConOtrosMateriales.toFixed(2)),
+		                costoConManoObra: Number(costoConManoObra.toFixed(2)),
+		                costoFinalConFactura: datos.conFactura ? Number(costoFinal.toFixed(2)) : null,
+		                costoFinalSinFactura: Number(costoConManoObra.toFixed(2)),
+		                litrosPintura: litrosPintura,
+		                combinacionLatas: combinacionLatas,
+		                conFactura: datos.conFactura,
+		                configUsada: { ...config }
+		            };
+		            
+		        } catch (e) {
+		            console.error("Error en cálculos finales:", e);
+		            return null;
+		        }
+		    }
+		    
+		    calcularOpcionA(datos) {
+		        try {
+		            let rebaje;
+		            if (datos.subopcionMarco === 'manual') {
+		                rebaje = datos.rebajeManual;
+		            } else {
+		                rebaje = this.obtenerRebajeEstandarA(datos.subopcionMarco);
+		            }
+		            
+		            const mlMarco = this.calcularMlMarcoA(datos.altoTotal, datos.anchoTotal);
+		            const desarrollo = this.calcularDesarrolloMarcoA(rebaje);
+		            const m2Marco = mlMarco * desarrollo;
+		            
+		            const mlProfundidadPuerta = this.calcularProfundidadPuerta(rebaje);
+		            const mlProfundidadTotal = mlProfundidadPuerta * datos.cantPuertas;
+		            
+		            const factorMarco = datos.cantPuertas > 2 ? 3 : 2;
+		            
+		            const mlAltoPuertas = (datos.altoTotal + mlProfundidadTotal) - (0.03 * 2);
+		            const mlAnchoPuertas = (datos.anchoTotal + mlProfundidadTotal) - (0.03 * factorMarco);
+		            const m2Puertas = mlAltoPuertas * mlAnchoPuertas;
+		            
+		            const desarrolloOmega = this.calcularDesarrolloOmega(rebaje);
+		            let m2Omega = datos.anchoTotal * desarrolloOmega;
+		            
+		            if (datos.altoTotal > 1.5) {
+		                m2Omega *= 2;
+		            }
+		            
+		            const m2Totales = m2Marco + m2Puertas + m2Omega;
+		            
+		            return this._calcularResultadosFinales(m2Totales, datos, rebaje, desarrollo);
+		            
+		        } catch (e) {
+		            console.error("Error en cálculo Opción A:", e);
+		            return null;
+		        }
+		    }
+		    
+		    calcularOpcionB(datos) {
+		        try {
+		            let rebaje, desarrollo, profundidadTotal;
+		            
+		            if (datos.configRebaje === 'especial') {
+		                rebaje = datos.rebajeEspecial;
+		                const contrarebaje = datos.contrarebajeEspecial;
+		                profundidadTotal = CONSTANTES_ESPECIALES.PROFUNDIDAD_BASE + rebaje + contrarebaje;
+		                desarrollo = CONSTANTES_ESPECIALES.DESARROLLO_BASE + rebaje + contrarebaje;
+		            } else {
+		                const constante = CONSTANTES_OPCION_B[datos.configRebaje];
+		                rebaje = constante.rebaje;
+		                profundidadTotal = constante.profMarco;
+		                desarrollo = (constante.profMarco - constante.profConst) + constante.devConst;
+		            }
+		            
+		            const mlMarco = this.calcularMlMarcoB(datos.altoTotal, datos.anchoTotal);
+		            const m2Marco = mlMarco * desarrollo;
+		            
+		            const profundidadPuerta = this.calcularProfundidadPuerta(rebaje);
+		            const anchoFrente = datos.anchoTotal + profundidadPuerta;
+		            const altoFrente = datos.altoTotal + profundidadPuerta;
+		            const m2FrentePuerta = anchoFrente * altoFrente;
+		            
+		            const mlAnchoDobleFaz = datos.anchoTotal - (0.03 * 2);
+		            const mlAltoDobleFaz = datos.altoTotal - 0.03;
+		            const m2DobleFaz = mlAltoDobleFaz * mlAnchoDobleFaz;
+		            
+		            const desarrolloU = (0.02 * 2) + rebaje;
+		            const m2U = (desarrolloU * datos.anchoTotal) * 6;
+		            
+		            const m2Totales = m2Marco + m2FrentePuerta + m2DobleFaz + m2U;
+		            
+		            return this._calcularResultadosFinales(m2Totales, datos, rebaje, desarrollo, profundidadTotal);
+		            
+		        } catch (e) {
+		            console.error("Error en cálculo Opción B:", e);
+		            return null;
+		        }
+		    }
+		}
+		
+		// =============================================
+		// VARIABLES GLOBALES
+		// =============================================
+		let calculadoraPRO = new CalculadoraChapasPRO();
+		let contadorPresupuestos = localStorage.getItem('contadorPresupuestos_pro') || 1;
+		
+		// =============================================
+		// MANEJAR PRECIOS
+		// =============================================
+		function actualizarCalculadora() {
+		    const precioKg = parseFloat(document.getElementById('precioKg').value) || 7000;
+		    const precioPintura = parseFloat(document.getElementById('precioPintura').value) || 18000;
+		    calculadoraPRO = new CalculadoraChapasPRO(precioKg, precioPintura);
+		}
+		
+		document.getElementById('precioKg').addEventListener('change', function() {
+		    if (this.value) {
+		        localStorage.setItem('precioKg_pro', this.value);
+		        actualizarCalculadora();
+		    }
+		});
+		
+		document.getElementById('precioPintura').addEventListener('change', function() {
+		    if (this.value) {
+		        localStorage.setItem('precioPintura_pro', this.value);
+		        actualizarCalculadora();
+		    }
+		});
+		
+		// =============================================
+		// FUNCIONES DE INTERFAZ
+		// =============================================
+		function mostrarMensaje(mensaje) {
+		    const mensajeExito = document.getElementById('mensajeExito');
+		    mensajeExito.textContent = `${mensaje} | Presupuesto PRO N° ${String(contadorPresupuestos).padStart(3, '0')} | ${new Date().toLocaleDateString()}`;
+		    mensajeExito.style.display = 'block';
+		    setTimeout(() => {
+		        mensajeExito.style.display = 'none';
+		    }, 5000);
+		}
+		
+		function toggleAcordeon(id) {
+		    const contenido = document.getElementById(id);
+		    contenido.style.display = contenido.style.display === 'block' ? 'none' : 'block';
+		}
+		
+		function limpiarCalculadora() {
+		    // Limpiar campos de medidas
+		    document.querySelectorAll('#altoTotalA, #anchoTotalA, #cantPuertasA, #rebajeManualA, #altoTotalB, #anchoTotalB, #cantPuertasB, #rebajeEspecialB, #contrarebajeEspecialB').forEach(input => {
+		        input.value = '';
+		    });
+		    
+		    // Resetear selectores
+		    document.getElementById('subopcionMarcoA').value = 'opc1';
+		    document.getElementById('rebajeManualContainerA').style.display = 'none';
+		    
+		    // Restaurar valores especiales por defecto
+		    document.getElementById('rebajeEspecialB').value = '0.04';
+		    document.getElementById('contrarebajeEspecialB').value = '0.145';
+		    calcularValoresEspeciales();
+		    
+		    // Limpiar resultados
+		    document.getElementById('resultadosChapas').innerHTML = '';
+		    document.getElementById('resultadosChapas').style.display = 'none';
+		    
+		    mostrarMensaje('Calculadora PRO limpiada');
+		}
+		
+		function imprimirResultados() {
+		    const resultados = document.getElementById('resultadosChapas');
+		    if (resultados.innerHTML.trim() === '') {
+		        alert('Primero calcula el proyecto');
+		        return;
+		    }
+		    resultados.style.display = 'block';
+		    setTimeout(() => window.print(), 100);
+		}
+		
+		// =============================================
+		// FUNCION PRINCIPAL DE CALCULO
+		// =============================================
+		function calcularChapas() {
+		    try {
+		        const opcionActiva = document.querySelector('.boton-opcion.activo').dataset.opcion;
+		        const conFactura = document.getElementById('conFactura').checked;
+		
+		        let datos, resultados;
+		
+		        if (opcionActiva === 'A') {
+		            const altoTotal = parseFloat(document.getElementById('altoTotalA').value);
+		            const anchoTotal = parseFloat(document.getElementById('anchoTotalA').value);
+		            const cantPuertas = parseInt(document.getElementById('cantPuertasA').value);
+		            const tipoChapa = document.getElementById('tipoChapaA').value;
+		            const subopcionMarco = document.getElementById('subopcionMarcoA').value;
+		
+		            if (!altoTotal || !anchoTotal || !cantPuertas) {
+		                mostrarMensaje('Completa todos los campos obligatorios');
+		                return;
+		            }
+		
+		            datos = { altoTotal, anchoTotal, cantPuertas, tipoChapa, subopcionMarco, conFactura };
+		
+		            if (subopcionMarco === 'manual') {
+		                const rebajeManual = parseFloat(document.getElementById('rebajeManualA').value);
+		                if (!rebajeManual || rebajeManual <= 0) {
+		                    mostrarMensaje('Ingresa un rebaje manual válido');
+		                    return;
+		                }
+		                datos.rebajeManual = rebajeManual;
+		            }
+		
+		            resultados = calculadoraPRO.calcularOpcionA(datos);
+		
+		        } else {
+		            const altoTotal = parseFloat(document.getElementById('altoTotalB').value);
+		            const anchoTotal = parseFloat(document.getElementById('anchoTotalB').value);
+		            const cantPuertas = parseInt(document.getElementById('cantPuertasB').value);
+		            const tipoChapa = document.getElementById('tipoChapaB').value;
+		            const configRebaje = document.getElementById('configRebajeB').value;
+		
+		            if (!altoTotal || !anchoTotal || !cantPuertas) {
+		                mostrarMensaje('Completa todos los campos obligatorios');
+		                return;
+		            }
+		
+		            datos = { altoTotal, anchoTotal, cantPuertas, tipoChapa, configRebaje, conFactura };
+		
+		            if (configRebaje === 'especial') {
+		                datos.rebajeEspecial = parseFloat(document.getElementById('rebajeEspecialB').value) || 0;
+		                datos.contrarebajeEspecial = parseFloat(document.getElementById('contrarebajeEspecialB').value) || 0;
+		                
+		                if (!datos.rebajeEspecial || !datos.contrarebajeEspecial) {
+		                    mostrarMensaje('Ingresa valores válidos para rebaje y contrarebaje');
+		                    return;
+		                }
+		            }
+		
+		            resultados = calculadoraPRO.calcularOpcionB(datos);
+		        }
+		
+		        if (!resultados) {
+		            mostrarMensaje('Error en los cálculos');
+		            return;
+		        }
+		
+		        mostrarResultados(resultados, opcionActiva);
+		        contadorPresupuestos++;
+		        localStorage.setItem('contadorPresupuestos_pro', contadorPresupuestos);
+		        
+		        const mensaje = opcionActiva === 'A' ? 
+		            `Frente gabinete calculado (Rebaje: ${resultados.rebajeUsado}m)` :
+		            `Marco puerta calculado (Profundidad: ${resultados.profundidadTotalUsada || resultados.rebajeUsado}m)`;
+		        mostrarMensaje(mensaje);
+		
+		    } catch (error) {
+		        mostrarMensaje(`Error: ${error.message}`);
+		    }
+		}
+		
+		// =============================================
+		// MOSTRAR RESULTADOS
+		// =============================================
+		function mostrarResultados(resultados, opcion) {
+		    const contenedor = document.getElementById('resultadosChapas');
+		    const config = resultados.configUsada;
+		    
+		    let html = `
+		        <div class="info-extra" style="margin-bottom: 15px; text-align: center;">
+		            ${opcion === 'A' ? 'FRENTE GABINETE' : 'MARCO PUERTA'} | PRESUPUESTO PRO N° ${String(contadorPresupuestos).padStart(3, '0')} | ${new Date().toLocaleDateString()}
+		        </div>
+		        
+		        <div class="tipo-mini rojo">
+		            <strong>CONFIGURACIÓN USADA</strong>
+		            <div class="resumen-linea">
+		                <span>Desperdicio:</span>
+		                <span>${config.desperdicio.valor}%</span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Otros materiales:</span>
+		                <span>${config.otrosMateriales.valor} ${config.otrosMateriales.tipo === 'porcentaje' ? '%' : '$'}</span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Mano de obra:</span>
+		                <span>${config.manoObra.valor} ${config.manoObra.tipo === 'porcentaje' ? '%' : '$'}</span>
+		            </div>
+		        </div>
+		        
+		        <div class="tipo-mini azul">
+		            <strong>MEDIDAS Y PESOS</strong>
+		            <div class="resumen-linea">
+		                <span>Metros cuadrados:</span>
+		                <span>${resultados.m2Totales} m²</span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Kg con desperdicio (${config.desperdicio.valor}%):</span>
+		                <span>${resultados.kgConDesperdicio} kg</span>
+		            </div>
+		        </div>
+		        
+		        <div class="tipo-mini verde">
+		            <strong>COSTOS</strong>
+		            <div class="resumen-linea">
+		                <span>Costo chapa:</span>
+		                <span>$${resultados.costoChapa.toLocaleString()}</span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Costo pintura:</span>
+		                <span>$${resultados.costoPintura.toLocaleString()}</span>
+		            </div>
+		            <div class="resumen-linea" style="border-top: 1px solid var(--border-color); padding-top: 8px;">
+		                <span><strong>Total materiales:</strong></span>
+		                <span><strong>$${resultados.costoMateriales.toLocaleString()}</strong></span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Con otros materiales:</span>
+		                <span>$${resultados.costoConOtrosMateriales.toLocaleString()}</span>
+		            </div>
+		            <div class="resumen-linea">
+		                <span>Con mano de obra:</span>
+		                <span>$${resultados.costoConManoObra.toLocaleString()}</span>
+		            </div>`;
+		
+		    if (resultados.conFactura) {
+		        html += `
+		            <div class="resumen-linea">
+		                <span>Con factura (+15%):</span>
+		                <span>$${resultados.costoFinalConFactura.toLocaleString()}</span>
+		            </div>`;
+		    }
+		
+		    html += `
+		            <div class="resumen-linea" style="border-top: 2px solid var(--accent-primary); padding-top: 8px; font-weight: bold;">
+		                <span>TOTAL FINAL:</span>
+		                <span>$${(resultados.conFactura ? resultados.costoFinalConFactura : resultados.costoConManoObra).toLocaleString()}</span>
+		            </div>
+		        </div>
+		        
+		        <div class="pintura-info">
+		            <strong>PINTURA</strong>
+		            <div class="resumen-linea">
+		                <span>Litros necesarios:</span>
+		                <span>${resultados.litrosPintura} litros</span>
+		            </div>
+		            <div class="resumen-linea" style="font-weight: bold; color: var(--accent-primary);">
+		                <span>Combinación óptima:</span>
+		                <span>${resultados.combinacionLatas}</span>
+		            </div>
+		        </div>
+		        
+		        <div class="info-extra" style="margin-top: 15px; text-align: center; font-size: 11px;">
+		            Versión PRO - Configuración individual por concepto
+		        </div>`;
+		    
+		    contenedor.innerHTML = html;
+		    contenedor.style.display = 'block';
+		    
+		    // Auto-scroll a resultados
+		    setTimeout(() => {
+		        contenedor.scrollIntoView({
+		            behavior: 'smooth',
+		            block: 'start'
+		        });
+		    }, 300);
+		}
+		
+		// =============================================
+		// CERTIFICADO DE USO PRO
+		// =============================================
+		function mostrarCertificado() {
+		    document.getElementById('certificado').style.display = 'flex';
+		}
+		
+		function cerrarCertificado() {
+		    document.getElementById('certificado').style.display = 'none';
+		    localStorage.setItem('certificado_pro_visto', 'true');
+		}
+		
+		// =============================================
+		// PWA - REGISTRO COMPLETO
+		// =============================================
+		if ('serviceWorker' in navigator) {
+		    window.addEventListener('load', function() {
+		        navigator.serviceWorker.register('sw-pro.js')
+		            .then(function(registration) {
+		                console.log('Service Worker PRO registrado:', registration.scope);
+		                
+		                // Verificar actualizaciones
+		                registration.addEventListener('updatefound', () => {
+		                    const newWorker = registration.installing;
+		                    console.log('Nueva version del Service Worker encontrada');
+		                    
+		                    newWorker.addEventListener('statechange', () => {
+		                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+		                            console.log('Nueva version disponible. Recarga para actualizar.');
+		                            // Aqui podrias mostrar un boton "Actualizar"
+		                        }
+		                    });
+		                });
+		            })
+		            .catch(function(error) {
+		                console.log('Error registrando Service Worker:', error);
+		            });
+		    });
+		}
+		
+		// Manejar instalacion PWA
+		let deferredPrompt;
+		
+		window.addEventListener('beforeinstallprompt', (e) => {
+		    // Prevenir que Chrome muestre el prompt automatico
+		    e.preventDefault();
+		    deferredPrompt = e;
+		    console.log('PWA lista para instalacion');
+		    
+		    // Opcional: Mostrar tu propio boton de instalacion
+		    // mostrarBotonInstalacion();
+		});
+		
+		window.addEventListener('appinstalled', () => {
+		    console.log('PWA instalada exitosamente');
+		    localStorage.setItem('pwa_instalada', 'true');
+		    deferredPrompt = null;
+		});
+		
+		// Funcion para mostrar boton de instalacion personalizado
+		function mostrarBotonInstalacion() {
+		    const botonInstalar = document.createElement('button');
+		    botonInstalar.id = 'instalar-pwa';
+		    botonInstalar.innerHTML = 'INSTALAR APP';
+		    botonInstalar.style.cssText = `
+		        position: fixed;
+		        bottom: 20px;
+		        right: 20px;
+		        padding: 12px 20px;
+		        background: #ff6b35;
+		        color: white;
+		        border: none;
+		        border-radius: 25px;
+		        font-weight: bold;
+		        cursor: pointer;
+		        z-index: 10000;
+		        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.5);
+		    `;
+		    
+		    botonInstalar.addEventListener('click', async () => {
+		        if (!deferredPrompt) return;
+		        
+		        deferredPrompt.prompt();
+		        const { outcome } = await deferredPrompt.userChoice;
+		        console.log(`Usuario ${outcome} la instalacion`);
+		        
+		        if (outcome === 'accepted') {
+		            botonInstalar.style.display = 'none';
+		        }
+		        
+		        deferredPrompt = null;
+		    });
+		    
+		    document.body.appendChild(botonInstalar);
+		}
+		
+		// =============================================
+		// INICIALIZACIÓN
+		// =============================================
+		document.addEventListener('DOMContentLoaded', function() {
+		    console.log('Calculadora de Chapas PRO - Versión Modificada cargada');
+		    
+		    // Cargar precios guardados
+		    const precioKgGuardado = localStorage.getItem('precioKg_pro');
+		    const precioPinturaGuardado = localStorage.getItem('precioPintura_pro');
+		
+		    if (precioKgGuardado) document.getElementById('precioKg').value = precioKgGuardado;
+		    if (precioPinturaGuardado) document.getElementById('precioPintura').value = precioPinturaGuardado;
+		
+		    actualizarCalculadora();
+		    
+		    // Cargar configuración individual
+		    cargarConfigIndividual();
+		
+		  // =============================================
+	 	// CONFIGURACIÓN SIMPLE - TOGGLES FUNCIONALES
+		 // =============================================
+			
+	 	// Función para manejar clicks en toggles
+	 	function manejarToggle(campo, tipo) {
+			    console.log(`Toggle: ${campo} -> ${tipo}`);
+			    
+			    // 1. Cambiar botones visualmente
+			    const grupo = document.querySelector(`[data-campo="${campo}"]`).parentNode;
+			    const botones = grupo.querySelectorAll('button');
+			    botones.forEach(btn => btn.classList.remove('activo'));
+			    
+			    const btnActivo = document.querySelector(`[data-campo="${campo}"][data-tipo="${tipo}"]`);
+			    if (btnActivo) btnActivo.classList.add('activo');
+			    
+			    // 2. Cambiar unidad
+			    const idUnidad = `unidad${campo.charAt(0).toUpperCase() + campo.slice(1)}`;
+			    const spanUnidad = document.getElementById(idUnidad);
+			    if (spanUnidad) {
+			        spanUnidad.textContent = tipo === 'porcentaje' ? '%' : '$';
+			    }
+			    
+			    // 3. Guardar en localStorage
+			    let config = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+			    config[campo] = { tipo: tipo };
+			    localStorage.setItem('configIndividual', JSON.stringify(config));
+			}
+			
+			// Configurar eventos cuando cargue la página
+			document.addEventListener('DOMContentLoaded', function() {
+			    console.log("Configurando toggles...");
+			    
+			    // Configurar eventos para cada botón
+			    document.querySelectorAll('.toggle-mini-btn').forEach(boton => {
+			        boton.addEventListener('click', function() {
+			            const campo = this.getAttribute('data-campo');
+			            const tipo = this.getAttribute('data-tipo');
+			            manejarToggle(campo, tipo);
+			        });
+			    });
+			    
+			    // Cargar configuración guardada
+			    const configGuardada = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+			    
+			    // Aplicar configuración guardada
+			    if (configGuardada.otrosMateriales) {
+			        manejarToggle('otrosMateriales', configGuardada.otrosMateriales.tipo);
+			    }
+			    
+			    if (configGuardada.manoObra) {
+			        manejarToggle('manoObra', configGuardada.manoObra.tipo);
+			    }
+			    
+			    console.log("Toggles configurados");
+			});
+			
+			// Obtener configuración actual (para cálculos)
+			function obtenerConfigIndividual() {
+			    const configGuardada = JSON.parse(localStorage.getItem('configIndividual') || '{}');
+			    
+			    return {
+			        desperdicio: {
+			            valor: parseFloat(document.getElementById('configDesperdicio').value) || 10,
+			            tipo: 'porcentaje'
+			        },
+			        otrosMateriales: {
+			            valor: parseFloat(document.getElementById('configOtrosMateriales').value) || 30,
+			            tipo: configGuardada.otrosMateriales?.tipo || 'porcentaje'
+			        },
+			        manoObra: {
+			            valor: parseFloat(document.getElementById('configManoObra').value) || 100,
+			            tipo: configGuardada.manoObra?.tipo || 'porcentaje'
+			        }
+			    };
+			}
+		    
+		    // Guardar cambios en configuración
+		    document.getElementById('configDesperdicio').addEventListener('change', function() {
+		        localStorage.setItem('configPro_desperdicio', this.value);
+		    });
+		    
+		    document.getElementById('configOtrosMateriales').addEventListener('change', function() {
+		        localStorage.setItem('configPro_otrosMateriales', this.value);
+		    });
+		    
+		    document.getElementById('configManoObra').addEventListener('change', function() {
+		        localStorage.setItem('configPro_manoObra', this.value);
+		    });
+		    
+		    // Asegurar que los campos estén vacíos
+		    document.getElementById('altoTotalA').value = '';
+		    document.getElementById('anchoTotalA').value = '';
+		    document.getElementById('cantPuertasA').value = '';
+		    document.getElementById('altoTotalB').value = '';
+		    document.getElementById('anchoTotalB').value = '';
+		    document.getElementById('cantPuertasB').value = '';
+		    
+		    // Configurar valores iniciales especiales
+		    document.getElementById('rebajeEspecialB').value = '0.04';
+		    document.getElementById('contrarebajeEspecialB').value = '0.145';
+		    calcularValoresEspeciales();
+		    
+		    // Mostrar certificado si es la primera vez
+		    if (!localStorage.getItem('certificado_pro_visto')) {
+		        setTimeout(() => {
+		            document.getElementById('certificado').style.display = 'flex';
+		        }, 2000);
+		    }
+		});
+    </script>
+</body>
+</html>
