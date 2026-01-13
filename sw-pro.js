@@ -10,15 +10,15 @@ const urlsToCache = [
 
 // INSTALAR
 self.addEventListener('install', event => {
-  console.log('🛠️ Service Worker PRO instalando...');
+  console.log('Service Worker PRO instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('✅ Cache abierto');
+        console.log('Cache abierto');
         return cache.addAll(urlsToCache);
       })
       .then(() => {
-        console.log('✅ Todos los recursos cacheados');
+        console.log('Todos los recursos cacheados');
         return self.skipWaiting();
       })
   );
@@ -26,19 +26,19 @@ self.addEventListener('install', event => {
 
 // ACTIVAR
 self.addEventListener('activate', event => {
-  console.log('⚡ Service Worker PRO activado');
+  console.log('Service Worker PRO activado');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log(`🗑️ Eliminando cache viejo: ${cacheName}`);
+            console.log('Eliminando cache viejo: ' + cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('✅ Service Worker listo para controlar clientes');
+      console.log('Service Worker listo para controlar clientes');
       return self.clients.claim();
     })
   );
@@ -55,17 +55,17 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Si está en cache, devolverlo
+        // Si esta en cache, devolverlo
         if (response) {
-          console.log(`📦 Cache hit: ${event.request.url}`);
+          console.log('Cache hit: ' + event.request.url);
           return response;
         }
         
-        // Si no está en cache, buscar en red
-        console.log(`🌐 Fetching from network: ${event.request.url}`);
+        // Si no esta en cache, buscar en red
+        console.log('Fetching from network: ' + event.request.url);
         return fetch(event.request)
           .then(response => {
-            // Verificar respuesta válida
+            // Verificar respuesta valida
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
@@ -76,15 +76,15 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
-                console.log(`💾 Guardado en cache: ${event.request.url}`);
+                console.log('Guardado en cache: ' + event.request.url);
               });
             
             return response;
           })
           .catch(error => {
-            console.log('❌ Error de red:', error);
-            // Podrías devolver una página offline aquí
-            return new Response('Modo offline - La app seguirá funcionando', {
+            console.log('Error de red:', error);
+            // Podrias devolver una pagina offline aqui
+            return new Response('Modo offline - La app seguira funcionando', {
               headers: { 'Content-Type': 'text/plain' }
             });
           });
